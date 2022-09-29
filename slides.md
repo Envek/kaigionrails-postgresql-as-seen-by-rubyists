@@ -148,7 +148,183 @@ layout: none
 layout: center
 ---
 
+This talk is about…
 
+# Subtle differences
+
+<!--
+今日、微妙の違いについて話をしたいと思います。ですが、微妙の違いっては何のことでしょう?
+-->
+
+---
+layout: image
+image: /images/roads-in-different-countries.jpg
+---
+
+---
+layout: footnote
+footnote-class: text-sm
+---
+
+<div class="grid grid-cols-[1fr_10rem_1fr] grid-rows-[min-content_auto] place-items-center h-full">
+
+<h2 class="col-span-3">
+Example of subtle yet important difference
+</h2>
+
+![Russian “Yield” sign](/images/road-signs/RU_road_sign_2.4.svg)
+
+<div class="text-center">
+
+Are they same?
+
+<strong class="text-2xl text-center">…</strong>
+</div>
+
+![Japanese “Stop” sign](/images/road-signs/Japan_road_sign_330-B.svg)
+
+</div>
+
+::footnote::
+
+Left: road sign conforming [Vienna Convention on Road Signs and Signals](https://en.wikipedia.org/wiki/Vienna_Convention_on_Road_Signs_and_Signals)
+
+Right: Japanese road sign per “Order on Road Sign, Road Line, and Road Surface Marking”
+
+
+---
+layout: footnote
+---
+
+<div class="grid grid-cols-[1fr_10rem_1fr] grid-rows-[min-content_auto] place-items-center h-full">
+
+<h2 class="col-span-3">
+Example of subtle yet important difference
+</h2>
+
+![Russian “Yield” sign](/images/road-signs/RU_road_sign_2.4.svg)
+
+<div class="text-center">
+
+Are they same?
+
+<strong class="text-3xl text-center">NO!</strong>
+</div>
+
+![Japanese “Stop” sign](/images/road-signs/Japan_road_sign_330-B.svg)
+
+</div>
+
+::footnote::
+
+Both require drivers to give a way…
+
+European sign doesn't have a requirement to stop or even slow down!
+
+---
+layout: footnote
+---
+
+<div class="grid grid-cols-[1fr_10rem_1fr] grid-rows-[min-content_auto] place-items-center h-full">
+
+<h2 class="col-span-3">
+Example of subtle yet important difference
+</h2>
+
+<div class="p-4 pt-8 pr-8">
+
+![Russian “Yield” sign](/images/road-signs/RU_road_sign_2.5.svg)
+</div>
+
+<div class="text-center">
+
+Are they same?
+
+<strong class="text-3xl text-center">YES!</strong>
+</div>
+
+![Japanese “Stop” sign](/images/road-signs/Japan_road_sign_330-A.svg)
+
+</div>
+
+::footnote::
+
+Stop signs around the world are _mostly_ octagonal.
+
+Japanese signs have “STOP” word in English after 2017, but are still pretty rare to find.
+
+---
+layout: footnote
+---
+
+<div class="grid grid-cols-[1fr_10rem_1fr] grid-rows-[min-content_auto] place-items-center h-full">
+
+<h2 class="col-span-3">
+Example of subtle yet important difference
+</h2>
+
+![Russian “Yield” sign](/images/road-signs/RU_road_sign_2.4.svg)
+
+<div class="text-center">
+
+Maybe these are the same?
+
+<strong class="text-3xl text-center">NO!</strong>
+</div>
+
+![Japanese “Stop” sign](/images/road-signs/Japan_road_sign_329-A.svg)
+
+</div>
+
+::footnote::
+
+European sign doesn't have a requirement to slow down.
+
+And Japanese sign doesn't have a requirement to give a way…
+
+---
+
+<div class="grid grid-cols-[1fr_10rem_1fr] grid-rows-[min-content_auto] place-items-center h-full">
+
+<h2 class="col-span-3">
+And how it relates to Ruby and PostgreSQL?
+</h2>
+
+<img alt="Ruby logo" src="/images/Ruby_logo.svg" class="w-full h-full scaled-image p-4" />
+
+<twemoji-thinking-face class="self-end w-full h-32" />
+
+<img alt="PostgreSQL logo" src="/images/Postgresql_elephant.svg" />
+
+</div>
+
+---
+
+<div class="grid grid-cols-[1fr_10rem_1fr] grid-rows-[min-content_auto] place-items-center h-full">
+
+<h2 class="col-span-3">
+And how it relates to Ruby and PostgreSQL?
+</h2>
+
+<img alt="Ruby logo" src="/images/Ruby_logo.svg" class="w-full h-full scaled-image p-4" />
+
+<p class="text-center">
+Application data
+<twemoji-repeat-button class="w-full h-32" />
+Data in the database
+</p>
+
+<img alt="PostgreSQL logo" src="/images/Postgresql_elephant.svg" />
+
+</div>
+
+---
+layout: center
+---
+
+# Ruby vs PostgreSQL data types
+
+Are they same?
 
 ---
 layout: comparison
