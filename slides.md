@@ -340,11 +340,19 @@ Variable length
 
 ::ruby::
 
+```ruby
+1.size             # =>  8 (bytes)
+(256**8 - 1).size  # =>  8 (bytes)
+(256**8).size      # =>  9 (bytes)
+(256**40 - 1).size # => 40 (bytes)
 ```
-1.size => 8 (bytes)
-(256**8 - 1).size # => 8 (bytes)
-(256**8).size # => 9 (bytes)
-(256**40 - 1).size #=> 40 (bytes)
+
+In ActiveModel there is validation for databases:
+
+```ruby
+Test.create(value: 2147483648)
+# ActiveModel::RangeError: 2147483648 is out of range
+# for ActiveModel::Type::Integer with limit 4 bytes
 ```
 
 ::pgtype::
@@ -355,19 +363,134 @@ Variable length
 
 ::postgresql::
 
-```
+<div class="text-xs">
+
+| Name     | Size | Range |
+|----------| - | - |
+| `smallint` | 2 | -32768 to +32767 |
+| `integer`  | 4 | -2147483648 to +2147483647 |
+| `bigint`   | 8 | -9223372036854775808 to +9223372036854775807 |
+
+</div>
+
+```sql
 INSERT INTO "tests" ("value") VALUES (2147483648);
-ERROR:  integer out of range
+-- ERROR:  integer out of range
 ```
 
-::footnote::
+<!-- -->
 
-Hell yeah
+::footnote_ruby::
+
+See [bignum.c](https://github.com/ruby/ruby/blob/ruby_3_1/bignum.c) in Ruby sources.
+
+::footnote_pg::
+
+See [Numeric types docs](https://www.postgresql.org/docs/14/datatype-numeric.html)
 
 
 <!--
 
 -->
+
+---
+layout: none
+---
+<a href="https://github.com/rails/rails/pull/26266">
+<img alt="Ruby on Rails pull request № 26266" src="/images/rails-pull-request-26266-light.png" class="block dark:hidden" />
+<img alt="Evil Martians" src="/images/rails-pull-request-26266-dark.png" class="hidden dark:block" />
+</a>
+<twemoji-backhand-index-pointing-left class="absolute left-550px bottom-80px text-3xl animate-pulse" />
+
+---
+
+## Oh no, I have integer primary keys! What to do?
+
+ 0. Don't panic!
+
+ 1. Use [pghero](https://github.com/ankane/pghero) or Heroku [pg:diagnose](https://devcenter.heroku.com/articles/heroku-postgres-performance-analytics#pg-diagnose) to detect problematic primary keys.
+
+ 2. Migrate to `bigint` if needed (use triggers, Luke)
+
+ 3. Remember that all integers are signed!
+ 
+    <small>You always have 2 more billions of values on negative side!</small>
+
+    ```sql
+    SELECT setval('<sequence_name>', -2147483647);
+    ```
+
+<qr-code url="https://github.com/ankane/pghero" caption="pghero" class="w-32 absolute bottom-20px right-20px" />
+
+---
+layout: comparison
+---
+
+## Datatype
+
+::rubytype::
+
+`Class`
+
+Size
+
+::ruby::
+
+Details
+
+::pgtype::
+
+`type`
+
+size
+
+::postgresql::
+
+Details
+
+::footnote_ruby::
+
+Links
+
+::footnote_pg::
+
+Links
+
+
+---
+layout: comparison
+---
+
+## Datatype
+
+::rubytype::
+
+`Class`
+
+Size
+
+::ruby::
+
+Details
+
+::pgtype::
+
+`type`
+
+size
+
+::postgresql::
+
+Details
+
+::footnote_ruby::
+
+Links
+
+::footnote_pg::
+
+Links
+
 
 ---
 layout: comparison

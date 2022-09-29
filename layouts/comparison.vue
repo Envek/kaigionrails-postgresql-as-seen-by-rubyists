@@ -8,6 +8,7 @@ const props = defineProps({
   },
   footnoteClass: {
     type: String,
+    default: 'text-xs'
   },
 })
 
@@ -22,7 +23,7 @@ const rubyRailsLogo = computed(() => {
 </script>
 
 <template>
-  <div class="slidev-layout comparison-container w-full h-full grid grid-cols-2 gap-2 pb-0">
+  <div class="slidev-layout comparison-container w-full h-full grid grid-cols-2 gap-4 pb-0">
     <div class="self-start col-span-2">
       <slot />
     </div>
@@ -44,10 +45,13 @@ const rubyRailsLogo = computed(() => {
     <div class="place-self-stretch postgresql">
       <slot name="postgresql" />
     </div>
-    <div class="self-end col-span-2 footnote" :class="props.footnoteClass">
-      <slot name="footnote" />
+    <div class="self-end footnote" :class="props.footnoteClass">
+      <slot name="footnote_ruby" />
     </div>
-  </div>
+    <div class="self-end footnote" :class="props.footnoteClass">
+      <slot name="footnote_pg" />
+    </div>
+</div>
 </template>
 
 <style>
