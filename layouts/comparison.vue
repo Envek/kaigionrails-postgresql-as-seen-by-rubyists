@@ -23,7 +23,7 @@ const rubyRailsLogo = computed(() => {
 </script>
 
 <template>
-  <div class="slidev-layout comparison-container w-full h-full grid grid-cols-2 gap-4 pb-0">
+  <div class="slidev-layout comparison-container w-full h-full grid grid-cols-2 gap-2 pb-0">
     <div class="self-start col-span-2">
       <slot />
     </div>

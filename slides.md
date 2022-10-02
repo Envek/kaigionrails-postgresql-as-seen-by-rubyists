@@ -400,7 +400,7 @@ layout: none
 <img alt="Ruby on Rails pull request № 26266" src="/images/rails-pull-request-26266-light.png" class="block dark:hidden" />
 <img alt="Evil Martians" src="/images/rails-pull-request-26266-dark.png" class="hidden dark:block" />
 </a>
-<twemoji-backhand-index-pointing-left class="absolute left-550px bottom-80px text-3xl animate-pulse" />
+<twemoji-backhand-index-pointing-left class="absolute left-550px bottom-66px text-5xl animate-pulse" />
 
 ---
 
@@ -412,41 +412,424 @@ layout: none
 
  2. Migrate to `bigint` if needed (use triggers, Luke)
 
- 3. Remember that all integers are signed!
+ 3. In case of emergency, remember that all integers are signed!
  
-    <small>You always have 2 more billions of values on negative side!</small>
+    <small>You always have 2 more billions of values on the ~~dark~~ negative side!</small>
 
     ```sql
     SELECT setval('<sequence_name>', -2147483647);
     ```
 
-<qr-code url="https://github.com/ankane/pghero" caption="pghero" class="w-32 absolute bottom-20px right-20px" />
+<qr-code url="https://github.com/ankane/pghero" caption="pghero" class="w-32 absolute bottom-10px right-10px" />
 
 ---
 layout: comparison
 ---
 
-## Datatype
+## Floating point numbers
+
+<p class="text-3xl absolute top-20px left-400px rotate-340 animate-pulse text-red-500 p-2 border-3 border-red-500">IEEE 754</p>
 
 ::rubytype::
 
-`Class`
+`Float`
 
-Size
+8 bytes (double-precision)
 
 ::ruby::
 
-Details
+```ruby
+0.1 + 0.2  # => 0.30000000000000004
+
+
+Float::MAX # => 1.7976931348623157e+308
+Float::MAX + '1e+308'.to_f # => Infinity
+# BUT!
+Float::MAX + '0.1'.to_f # => 1.7976931348623157e+308 🤔
+Float::MAX == (Float::MAX + '0.1'.to_f) # => true 🤯
+
+
+Float::NAN == Float::NAN # => false
+```
+
 
 ::pgtype::
 
-`type`
+`real` — 4 bytes
 
-size
+`double` — 8 bytes
 
 ::postgresql::
 
-Details
+```sql
+SELECT 0.1::float + 0.2::float; -- 0.30000000000000004
+SELECT 0.1 + 0.2; -- 0.3 (but it is NOT float!)
+
+SELECT '1.7976931348623157e+308'::float + '1e+308'::float;
+--- ERROR:  value out of range: overflow
+
+SELECT '1.7976931348623157e+308'::float = 
+('1.7976931348623157e+308'::float + '0.1'::float);
+-- true ¯\_(ツ)_/¯
+
+SELECT 'NaN'::float = 'NaN'::float; -- true 🤯
+```
+
+::footnote_ruby::
+
+See Ruby docs for [Float](https://ruby-doc.org/core-3.1.0/Float.html)
+
+::footnote_pg::
+
+More fun at [0.30000000000000004.com](https://0.30000000000000004.com/)!
+
+<qr-code url="https://0.30000000000000004.com/" caption="0.30000000000000004.com" class="w-32 absolute bottom-10px right-10px" />
+
+---
+layout: center
+class: text-3xl text-center
+---
+
+Don't use floats for calculating money!
+
+<div class="text-5xl my-12">
+🤑💥🤕
+</div>
+
+Never ever!
+
+<!--
+
+じゃぁ、お金を数えるにはどんなデータ型を使った方がいいか…
+-->
+
+---
+layout: comparison
+---
+
+## Arbitrary precision numbers
+
+::rubytype::
+
+`BigDecimal`
+
+Variable length
+
+::ruby::
+
+```ruby
+BigDecimal("0.1") + BigDecimal("0.2")  # => 0.3e0
+
+BigDecimal("NaN") == BigDecimal("NaN") # => false
+BigDecimal("1.0") / BigDecimal("0.0")  #=> Infinity
+
+# To match PostgreSQL behavior:
+BigDecimal.mode(BigDecimal::EXCEPTION_OVERFLOW, true)
+BigDecimal("1.0") / BigDecimal("0.0")
+# Computation results in 'Infinity' (FloatDomainError)
+
+BigDecimal("0.1") + 0.2.to_d == 0.30000000000000004
+# true 🤔
+```
+
+::pgtype::
+
+`numeric`
+
+Variable length
+
+::postgresql::
+
+```sql
+SELECT 0.1 + 0.2; -- 0.3 which is decimal
+
+SELECT 'NaN'::decimal = 'NaN'::decimal; -- true
+SELECT '1.0'::decimal / '0.0'::decimal;
+-- ERROR:  division by zero
+
+
+
+
+
+SELECT (0.1 + 0.2) = (0.1::float + 0.2::float);
+-- false
+```
+
+::footnote_ruby::
+
+See Ruby docs for [BigDecimal](https://ruby-doc.org/stdlib-3.1.0/libdoc/bigdecimal/rdoc/BigDecimal.html)
+
+::footnote_pg::
+
+**Use `numeric` to store money!**
+
+---
+layout: comparison
+---
+
+## But there is money type, isn't it?
+
+::rubytype::
+
+`BigDecimal`
+
+Variable size
+
+::ruby::
+
+```ruby
+# If the database locale setting isn't `en_US`:
+
+# Creation may fail:
+Product.create!(price: 100500.42)
+# ERROR: invalid input syntax for type money: "100500.42"
+
+# Or it can succeed, but won't be able to be parsed back:
+Product.last.price # => 0.0
+```
+
+::pgtype::
+
+`money`
+
+8 byte fixed-precision number.
+
+::postgresql::
+
+```sql
+-- on production:
+SELECT 100500.42::money;
+-- $100,500.42
+
+-- on dev machine:
+SELECT 100500.42::money;
+-- ¥ 100,500
+-- 🤯 But it should be dollars, and where are my cents?
+```
+
+::footnote_ruby::
+
+ActiveRecord has to parse textual representation, see [connection_adapters/postgresql/oid/money.rb](https://github.com/rails/rails/blob/f8e97a1464e0ab7feabf87f9da7fd9a86af509a0/activerecord/lib/active_record/connection_adapters/postgresql/oid/money.rb#L16-L36)
+
+Also see [issue № 31457](https://github.com/rails/rails/issues/31457) for lots of pain.
+
+::footnote_pg::
+
+Both output and acceptable input format depends on session-level `lc_monetary` setting!
+
+Precision is defined by `lc_monetary` at database creation time and can't be changed!
+
+---
+layout: comparison
+---
+
+## Strings and texts, lyrics and prose
+
+::rubytype::
+
+`String`
+
+Variable size
+
+::ruby::
+
+```ruby
+"こんにちは地球人！".encoding
+# => #<Encoding:UTF-8>
+
+"\xe3\x2e\x2e".encoding
+# => #<Encoding:UTF-8>
+"\xe3\x2e\x2e".valid_encoding?
+# => false
+
+"これ\x00やばい!".valid_encoding?
+# => true
+```
+
+::pgtype::
+
+`varchar`, `text`
+
+variable size, max 1 GB
+
+::postgresql::
+
+```sql
+SELECT 'こんにちは地球人！';
+-- こんにちは地球人！
+
+SELECT E'\xe3\x2e\x2e');
+-- ERROR:  invalid byte sequence for encoding "UTF8": 0xe3 0x2e 0x2e
+
+
+
+SELECT E'これ\x00やばい!';
+-- ERROR:  invalid byte sequence for encoding "UTF8": 0x00
+```
+
+---
+layout: center
+class: text-2xl
+---
+
+Please, use <a href="https://utf8everywhere.org/">utf8everywhere.org</a>!
+
+<qr-code url="https://utf8everywhere.org/"  caption="utf8everywhere.org" class="w-32 absolute bottom-10px right-10px" />
+
+---
+layout: comparison
+---
+
+## Binary data
+
+::rubytype::
+
+`String`
+
+Variable size
+
+::ruby::
+
+```ruby
+data = File.binread(“meme.png”)
+# => "\x89PNG\r\n\x1A…"
+data.encoding # => #<Encoding:ASCII-8BIT>
+data.bytesize # => 46534
+
+Test.last.blob
+# => "\x89PNG\r\n\x1A…"
+Test.last.blob_before_type_cast.bytesize
+# => 46534
+Test.last.blob_before_type_cast
+# => "\\x89504e470d0a1a0a"
+Test.last.blob_before_type_cast.bytesize
+# => 93070
+```
+
+::pgtype::
+
+`bytea`
+
+Variable size, max 1 GB
+
+::postgresql::
+
+```
+SELECT '\x89504e470d0a1a0a…'::bytea;
+
+# Note hexadecimal format ↑
+```
+
+::footnote_ruby::
+
+Memory and network traffic consumption: 🌚
+
+::footnote_pg::
+
+See [Binary Data Types](https://www.postgresql.org/docs/14/datatype-binary.html) page in the docs.
+
+---
+
+## What if 1 GB isn't enough?
+
+You can't store more in a table column (hard limit)
+
+But you can store up 4 TB in large objects table!
+
+And there is a gem for that:
+
+[active_storage-postgresql](https://github.com/lsylvester/active_storage-postgresql)
+
+<div class="absolute bottom-5">
+Beware performance implications of TOAST →
+</div>
+
+<Transform scale="0.67" origin="top right" class="min-w-550px absolute top-5 right-5">
+  <Tweet id="1526922431780233218" />
+</Transform>
+
+<qr-code url="https://twitter.com/Envek/status/1526922431780233218" class="w-32 absolute bottom-10px right-10px" />
+
+---
+layout: comparison
+---
+
+## Dates
+
+::rubytype::
+
+`Date`
+
+::ruby::
+
+
+::pgtype::
+
+`date`
+
+::postgresql::
+
+
+::footnote_ruby::
+
+::footnote_pg::
+
+---
+layout: comparison
+rubyRails: ruby-rails
+---
+
+## Time and timezones
+
+::rubytype::
+
+`Time`
+
+`AS::TimeWithZone`
+
+<small class="text-xs">Two UNIX timestamps inside and tzdata also</small>
+
+::ruby::
+
+```ruby
+Time.now # => 2022-10-22 13:42:42 +0900
+Time.current # => Sat, 22 Oct 2022 04:42:42 UTC +00:00
+
+Time.current.time_zone
+# => #<ActiveSupport::TimeZone name="UTC", @tzinfo=#<TZInfo::DataTimezone: Etc/UTC>>
+
+Time.use_zone("Asia/Tokyo") { Time.current }
+# => Sat, 22 Oct 2020 13:42:42 JST +09:00
+```
+
+::pgtype::
+
+`timestamp`
+
+`timestamptz`
+
+8 bytes, microsecond precision
+
+::postgresql::
+
+```sql
+CREATE TABLE tests (t1 timestamp, t2 timestamptz);
+SET SESSION timezone TO 'Etc/UTC';
+INSERT INTO tests (t1, t2) VALUES (now(), now());
+SET SESSION timezone TO 'Asia/Tokyo';
+INSERT INTO tests (t1, t2) VALUES (now(), now());
+SET SESSION timezone TO 'Europe/Lisbon';
+INSERT INTO tests (t1, t2) VALUES (now(), now());
+SET SESSION timezone TO 'Asia/Tokyo';
+SELECT * FROM tests;
+┌────────────────────────────┬───────────────────────────────┐
+│             t1             │              t2               │
+╞════════════════════════════╪═══════════════════════════════╡
+│ 2022-10-02 10:16:53.682997 │ 2022-10-02 19:16:53.682997+09 │
+│ 2022-10-02 19:16:53.684923 │ 2022-10-02 19:16:53.684923+09 │
+│ 2022-10-02 11:16:53.68649  │ 2022-10-02 19:16:53.68649+09  │
+└────────────────────────────┴───────────────────────────────┘
+```
 
 ::footnote_ruby::
 
@@ -456,6 +839,39 @@ Links
 
 Links
 
+
+---
+layout: comparison
+---
+
+## Void and uncertainity
+
+::rubytype::
+
+`NilClass`
+
+::ruby::
+
+```ruby
+nil == nil
+# => true ¯\_(ツ)_/¯
+```
+
+::pgtype::
+
+`NULL`
+
+::postgresql::
+
+```sql
+SELECT NULL = NULL; -- NULL 🚨
+SELECT NULL IS NULL; -- true
+SELECT NULL IS DISTINCT FROM NULL; -- false
+
+SELECT 'Ruby' = NULL; -- NULL 🚨
+SELECT 'Ruby' IS NULL; -- false
+SELECT 'Ruby' IS DISTINCT FROM NULL; -- true
+```
 
 ---
 layout: comparison
