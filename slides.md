@@ -1134,6 +1134,303 @@ PostgreSQL type support is available from Ruby on Rails 6.1+
 -->
 
 ---
+layout: cover
+---
+
+# Inside ActiveRecord
+
+How datatypes are working under the hood
+
+---
+
+## Create custom datatype
+
+Declare composite datatype in the database:
+
+```sql
+CREATE TYPE _true_money AS (
+  currency varchar,
+  amount numeric
+);
+
+CREATE DOMAIN true_money AS _true_money CHECK (
+  value IS NULL AND
+  value IS DISTINCT FROM (null, null)::_true_money OR
+  ((value).currency IS NOT NULL AND (value).amount IS NOT NULL)
+);
+```
+
+And use it:
+
+```sql
+ALTER TABLE tests ADD COLUMN price true_money;
+INSERT INTO tests (price) VALUES ('("JPY",100.0)');
+SELECT price FROM tests; -- (JPY,100.0)
+```
+
+---
+
+## Declare it in ActiveRecord
+
+```ruby
+module ActiveRecord
+  module ConnectionAdapters
+    module PostgreSQL
+      module OID
+        class TrueMoney < Type::Value
+          def type
+            :true_money
+          end
+
+          # Here will be (de)serialization code
+        end
+      end
+    end
+  end
+end
+```
+
+---
+
+## Deserialization
+
+```ruby
+def deserialize(value)
+  return nil if value.nil?
+
+  currency, amount = value.match(/\A\("?(\w+)"?,(\d+(?:\.\d+)?)\)\z/).captures
+  ::Money.from_amount(BigDecimal(amount), currency)
+end
+```
+
+And `"(USD,4.2)"` in PG transforms to `#<Money fractional:420 currency:USD>` in Ruby ✨
+
+---
+
+## Casting user input
+
+Add ability to assign ready object to attribute:
+
+```ruby
+def cast(value)
+  return nil if value.nil?
+
+  case value
+    when ::Money then value
+    when String then deserialize(value)
+    else
+      raise NotImplementedError, "Don't know how to cast #{value.class} #{value.inspect} into Money"
+  end
+end
+```
+
+---
+
+## Deserialization and input casting at once
+
+```ruby
+def cast_value(value)
+  case value
+    when ::Money then value
+    when String
+      currency, amount = value.match(/\A\("?(\w+)"?,(\d+(?:\.\d+)?)\)\z/).captures
+      ::Money.from_amount(BigDecimal(amount), currency)
+    else
+      raise NotImplementedError, "Don't know how to cast #{value.class} #{value.inspect} into Money"
+    end
+  end
+end
+```
+
+Replaces both `deserialize` and `cast`, also handles `nil`s.
+
+---
+
+## Serialization for the database
+
+```ruby
+def serialize(value)
+  return nil if value.nil? # ActiveRecord will handle NULL for us
+
+  amount_t   = ::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::Decimal.new
+  currency_t = ::ActiveModel::Type::String.new
+  "(#{currency_t.serialize(value.currency.iso_code).inspect},#{amount_t.serialize(value.amount)})"
+end
+```
+
+Reuse available serialization methods for subtypes.
+
+---
+
+## Register datatype in ActiveRecord
+
+```ruby
+PostgreSQLAdapterWithTrueMoney = Module.new do
+  def initialize_type_map(m = type_map)
+    m.register_type "true_money" do |*_args, _sql_type|
+      ::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::TrueMoney.new
+    end
+    m.alias_type "_true_money", "true_money"
+
+    super
+  end
+end
+
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.prepend(PostgreSQLAdapterWithTrueMoney)
+
+ActiveRecord::Type.register(
+  :true_money,
+  ::ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::TrueMoney,
+  adapter: :postgresql,
+)
+```
+
+---
+
+## Also add it for migrations…
+
+```ruby
+module SchemaStatementsWithTrueMoney
+  def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **)
+    case type.to_s
+    when 'true_money' then 'true_money'
+    else super
+    end
+  end
+end
+ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaStatements.prepend(SchemaStatementsWithTrueMoney)
+
+module ActiveRecord::ConnectionAdapters::PostgreSQL::ColumnMethods
+  def true_money(name, options = {})
+    column(name, :true_money, options)
+  end
+end
+```
+
+---
+
+## Ready to use!
+
+```sh
+rails g model Product title price:true_money
+rails db:migrate
+rails console
+```
+
+```ruby
+Product.create!(title: "Something", price: Money.from_amount(100000, “USD”))
+Product.last
+# => #<Product id: 1, title: "Something", price: 100000.00 USD>
+```
+
+---
+layout: footnote
+---
+
+## But it is not done yet!
+
+<div class="grid grid-cols-2 gap-2">
+
+<div>
+
+A lot of stuff has to be done to make a full-featured datatype in SQL…
+
+```sql
+CREATE FUNCTION true_money_add(a true_money, b true_money) RETURNS true_money AS $$
+  BEGIN
+    IF (a).currency != (b).currency THEN
+      RAISE EXCEPTION '% can not be added to % - currencies does not match', b, a;
+    END IF;
+    RETURN ((a).currency, (a).amount + (b).amount);
+  END;
+$$ IMMUTABLE RETURNS NULL ON NULL INPUT LANGUAGE plpgsql;
+
+CREATE OPERATOR +(leftarg=true_money, rightarg=true_money, procedure=true_money_add);
+```
+
+</div>
+
+```sql
+
+CREATE FUNCTION true_money_sum(state true_money, value true_money) RETURNS true_money AS $$
+  BEGIN
+    IF value IS NULL AND state IS NULL THEN
+      RETURN NULL;
+    END IF;
+    IF state IS NULL THEN
+      RETURN value;
+    END IF;
+    RETURN state + value;
+  END;
+$$ IMMUTABLE LANGUAGE plpgsql;
+
+CREATE AGGREGATE sum (true_money) (sfunc = true_money_sum, stype = true_money);
+```
+</div>
+
+But then you can do a lot in SQL:
+
+```sql
+SELECT (price).currency AS currency, sum(price) AS total
+FROM products GROUP BY currency;
+```
+
+::footnote::
+
+After all, one might re-invent abandoned [pg-currency](https://github.com/samv/pg-currency)
+
+---
+
+## Play with it yourself!
+
+
+<div class="text-center my-12">
+<qr-code url="https://gist.github.com/Envek/780b917e72a86c123776ee763b8dd986" class="max-w-80 mx-auto" />
+</div>
+
+https://gist.github.com/Envek/780b917e72a86c123776ee763b8dd986
+
+---
+layout: cover
+---
+
+# Gems, gems, gems!
+
+Everything That Can Be Invented Has Been Invented
+
+---
+
+## Gems for datatypes
+
+- [activerecord-postgis-adapter](https://github.com/rgeo/activerecord-postgis-adapter) — all the power of PostGIS extension in Ruby.
+- [activerecord-postgres_enum](https://github.com/bibendi/activerecord-postgres_enum) — support enum in migrations and schema
+- [torque-postgresql](https://github.com/crashtech/torque-postgresql) — standard datatypes not (yet) supported by Rails.
+
+---
+
+## Gems for other PostgreSQL features
+
+Because PostgreSQL is much more than datatypes.
+
+- [fx](https://github.com/teoljungberg/fx) — make schema.rb great again with triggers
+- [scenic](https://github.com/scenic-views/scenic) — add support for views
+- [order_query](https://github.com/glebm/order_query) — keyset-pagination for your models
+- [postgresql_cursor](https://github.com/afair/postgresql_cursor) — how to get more data from the database faster
+- [ActiveRecordExtended](https://github.com/GeorgeKaraszi/ActiveRecordExtended) — functions for datatypes and DSL for queries.
+
+And also martian [pg_trunk](https://github.com/nepalez/pg_trunk/) gem to ~~rule them all~~ get `fx`, `scenic` object dependency management and more within a single gem!
+
+<qr-code url="https://github.com/nepalez/pg_trunk/" caption="pg_trunk gem" class="w-32 absolute bottom-10 right-10" />
+
+---
+layout: cover
+---
+
+# That's it!
+
+Questions?
+
+---
 
 # Thank you!
 
