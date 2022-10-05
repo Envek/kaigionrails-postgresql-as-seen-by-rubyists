@@ -762,17 +762,31 @@ layout: comparison
 
 ::ruby::
 
+Internally stores number of days since year 4713 BC.
+
+> The Julian day number is in elapsed days since noon (Greenwich Mean Time) on January 1, 4713 BCE (in the Julian calendar).
+>
+> The day count is virtually the astronomical Julian day number.
 
 ::pgtype::
 
 `date`
 
+4 bytes
+
 ::postgresql::
 
+Internally stores number of days since year 4713 BC.
+
+> In the Julian Date system, each day has a sequential number, starting from JD 0 (which is sometimes called the Julian Date). JD 0 corresponds to 1 January 4713 BC in the Julian calendar.
 
 ::footnote_ruby::
 
+See the docs for [Date](https://ruby-doc.org/stdlib-3.1.2/libdoc/date/rdoc/Date.html#method-c-new) class.
+
 ::footnote_pg::
+
+See [B.7. Julian Dates](https://www.postgresql.org/docs/14/datetime-julian-dates.html) in PostgreSQL docs.
 
 ---
 layout: comparison
@@ -839,6 +853,15 @@ Links
 
 Links
 
+---
+layout: center
+---
+
+## Time zones are hard
+
+<Youtube id="-5wpm-gesOY" width="640" height="360" class="pt-10" />
+
+<qr-code url="https://youtu.be/-5wpm-gesOY" class="w-32 absolute bottom-10px right-10px" />
 
 ---
 layout: comparison
@@ -874,39 +897,182 @@ SELECT 'Ruby' IS DISTINCT FROM NULL; -- true
 ```
 
 ---
+layout: center
+---
+
+# PostgreSQL-specific datatypes
+
+---
 layout: comparison
 ---
 
-## Datatype
+## Ranges
 
 ::rubytype::
 
-`Class`
-
-Size
+`Range`
 
 ::ruby::
 
-Details
+```ruby
+5..7 or 5...8
+Time.current..1.day.from_now
+
+# endless or beginless ranges
+Time.current..
+..Date.yesterday
+nil.. or Range.new(nil, nil)
+
+# Beginning is always included in Ruby :-(
+Test.pluck("tstzrange(now(), now() + '1 hour', '()')").first
+# ArgumentError: The Ruby Range object
+# does not support excluding the beginning of a Range.
+```
 
 ::pgtype::
 
-`type`
+`intrange`, `tsrange`, …
 
-size
+`intmultirange`, …
 
 ::postgresql::
 
-Details
+```sql
+SELECT int8range(5, 7, '[]'); -- [5,8]
+SELECT int8range(5, 8); -- [5,8)
+SELECT tstzrange(now(), now() + '1 day', '()');
+-- ["2022-10-22 14:42:42+09","2022-10-23 14:42:42+09")
+
+-- endless or beginless ranges
+SELECT tstzrange(now(), NULL);
+SELECT tstzrange(NULL, NULL);
+
+-- PG 14: Multiranges and operators
+SELECT nummultirange(numrange(1, 20))
+     - nummultirange(numrange(4, 6));
+-- {[1,4),[6,20)}
+```
 
 ::footnote_ruby::
 
-Links
+Additional methods in the [facets](https://github.com/rubyworks/facets) gem.
 
 ::footnote_pg::
 
-Links
+https://www.postgresql.org/docs/14/rangetypes.html
 
+---
+layout: comparison
+---
+
+## UUID
+
+<div class="absolute bottom-100px left-200px rotate-355">
+
+Also take a look at [upcoming UUIDv6, v7, and v8](https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-04)!
+</div>
+<qr-code url="https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-04" class="w-32 absolute bottom-50px right-150px" />
+
+::rubytype::
+
+`String`
+
+36 bytes
+
+::ruby::
+
+```ruby
+# All-random UUIDv4
+SecureRandom.uuid
+# => “40f15398-4b38-4e16-8b3c-ff16fc960d38”
+
+# Determined UUIDv5 (hash-based)
+Digest::UUID.uuid_v5(Digest::UUID::DNS_NAMESPACE, "name")
+# => "9b8edca0-90f2-5031-8e5d-3f708834696c"
+```
+
+::pgtype::
+
+`uuid`
+
+16 bytes
+
+::postgresql::
+
+```sql
+CREATE EXTENSION "pgcrypto";
+SELECT gen_random_uuid();
+-- 2cfff962-4a24-4ef3-b2f8-35351b18bf63
+
+CREATE EXTENSION "uuid-ossp";
+SELECT uuid_generate_v5(uuid_ns_dns(), 'name');
+-- 9b8edca0-90f2-5031-8e5d-3f708834696c
+```
+
+::footnote_ruby::
+
+See Rails docs for [Digest::UUID](https://api.rubyonrails.org/v6.0.3/classes/Digest/UUID.html)
+
+::footnote_pg::
+
+See docs for [pgcrypto](https://www.postgresql.org/docs/14/pgcrypto.html) and [uuid-ossp](https://www.postgresql.org/docs/14/uuid-ossp.html) extensions.
+
+---
+layout: comparison
+---
+
+## IP addresses
+
+::rubytype::
+
+`IPAddr`
+
+::ruby::
+
+```ruby
+ip6 = IPAddr.new "3ffe:505:2::1"
+ip4 = IPAddr.new "192.168.2.0/24"
+
+IPAddr.new("192.168.2.0/24").mask(16)
+#<IPAddr: IPv4:192.168.0.0/255.255.0.0>
+
+
+```
+
+::pgtype::
+
+`inet`, `cidr`
+
+7 or 19 bytes both
+
+::postgresql::
+
+```sql
+SELECT '::1'::inet;
+SELECT '127.0.0.1/32'::inet;
+
+SELECT set_masklen(cidr '192.168.1.0/24', 16);
+-- 192.168.0.0/16
+
+SELECT inet_merge(inet '192.168.1.5/24', inet '192.168.2.5/24');
+-- 192.168.0.0/22
+```
+
+<small>
+
+inet works with both host and network addresses.
+
+cidr works with network addresses only.
+
+</small>
+
+::footnote_ruby::
+
+See [IPAddr](https://ruby-doc.org/stdlib-3.1.0/libdoc/ipaddr/rdoc/IPAddr.html#method-i-mask) docs.
+
+::footnote_pg::
+
+See [Network address types](https://www.postgresql.org/docs/14/datatype-net-types.html) and [functions and operators](https://www.postgresql.org/docs/14/functions-net.html).
 
 ---
 layout: comparison
@@ -917,25 +1083,51 @@ rubyRails: rails
 
 ::rubytype::
 
+<small>
+
 `ActiveSupport::Duration`
 
-Rails type
+</small>
 
 ::ruby::
 
+```ruby
+Time.current + 1.year
+# => Thu, 18 Jun 2021 21:00:00 MSK +03:00
+
+100500.weeks.iso8601
+# => "P100500W"
+
+1.month.to_i
+# => 2629746
+```
 
 ::pgtype::
 
 `interval`
 
-2,4,8 bytes signed
+16 bytes
 
 ::postgresql::
 
-::footnote::
+```sql
+SELECT now() + ‘1 year’;
+-- 2021-06-18 21:00:00+03
+
+SELECT '100500 weeks'::interval;
+-- 703500 days
+
+SELECT EXTRACT(epoch FROM '1 month'::interval);
+-- 2592000
+```
+
+::footnote_ruby::
 
 Disclaimer: I added it to Rails in [pull request № 16919](https://github.com/rails/rails/pull/16919).
 
+::footnote_pg::
+
+PostgreSQL type support is available from Ruby on Rails 6.1+
 
 <!--
 
