@@ -460,7 +460,7 @@ layout: none
 
  1. Use [pghero](https://github.com/ankane/pghero) or Heroku [pg:diagnose](https://devcenter.heroku.com/articles/heroku-postgres-performance-analytics#pg-diagnose) to detect problematic primary keys.
 
- 2. Migrate to `bigint` if needed (use triggers, Luke)
+ 2. Migrate to `bigint` or `uuid` if needed (use triggers, Luke!)
 
  3. In case of emergency, remember that all integers are signed!
  
@@ -1003,6 +1003,88 @@ layout: center
 ---
 
 # PostgreSQL-specific datatypes
+
+---
+layout: comparison
+---
+
+## JSON
+
+::rubytype::
+
+`Hash`, `Array`
+
+::ruby::
+
+Be careful with symbols as keys
+
+```ruby
+{ "foo" => "bar", foo: "baz" }.to_json
+# {"foo":"baz"}
+```
+
+Define `as_json` method on your classes to serialize them to JSON automatically.
+
+Behavior of `JSON.dump` and `to_json` in Rails is different!
+
+::footnote_ruby::
+
+See ActiveSupport's [core_ext/object/json.rb](https://github.com/rails/rails/blob/1891a3ffcc123de89c47011f36c547354c669481/activesupport/lib/active_support/core_ext/object/json.rb)
+
+::pgtype::
+
+`json`, `jsonb`
+
+Variable length, up to 1GB
+
+::postgresql::
+
+JSON saves value as is <small>(it is just a string)</small>
+
+```sql
+SELECT '{"foo": "bar","foo":"baz"}'::json;
+-- {"foo": "bar","foo":"baz"}
+```
+
+JSONB is effective but strict: no duplicate keys, doesn't preserve whitespaces, etc…
+
+```sql
+SELECT '{"foo": "bar","foo":"baz"}'::jsonb;
+-- {"foo": "baz"}
+```
+
+Inside: string <small>(no null-bytes!)</small>, numeric, …
+
+::footnote_pg::
+
+See [8.14 JSON Types](https://www.postgresql.org/docs/14/datatype-json.html) and [9.16 JSON Functions and Operators](https://www.postgresql.org/docs/14/functions-json.html)
+
+<!--
+JSON… みんなはJSONが好きみたいですよね。便利だし、フレキシブルだし。JSON自身はけっこう簡単なものだと見られますが、でも微妙なことはたくさんありますね。
+初めに、PostgreSQLには二つのJSONデータ型があります。JSONとJSONB。違う所がけっこうあります。さいきん、みんなはJSONBを使っています。インデックスを作れますし、性能、パフォーマンすの方がいいし… ですが、厳密です。キーの間のスペースを無視して、ヂュープのキーも捨てたりします。JSONの方はフレキシブルので、リアル・ワールドの変なJSONをほとんど全部保存できます。ただし、両方ともゼロバイトを保存出来ません、Stringですから。
+RubyとRailsも複雑点があります。Rubyの標準JSONジェムとRailsのActiveSupportはJSONを少し違って作ります。ActiveSupportはオブジェクトのas_jsonというメソッドがあるなら、このメソッドを呼び出して、JSONのデータを組み立てます。標準のジェムはこれを使いません。
+-->
+
+---
+
+## JSON on steroids
+
+<a href="https://github.com/DmitryTsepelev/store_model" class="block my-10 text-center no-underline border-none hover:border-none">
+<img alt="store_model gem" src="https://opengraph.githubassets.com/1a8dd076f9dc2fdca766c80094db91f36af4a302e4708ed0f3ad3d6b9535733d/DmitryTsepelev/store_model" class="w-96 mx-auto" />
+</a>
+
+Use [store_model](https://github.com/DmitryTsepelev/store_model) gem to make powerful value objects or submodels from JSON fields.
+
+**But don't overuse!**
+
+There is performance penalty for serialization and deserialization.
+
+<qr-code url="https://github.com/DmitryTsepelev/store_model" caption="store_model gem repo" class="w-32 absolute bottom-10px right-10px" />
+
+<!--
+JSONはいいですけど、RubyのHashを使うのはそんなに便利ではないですね。JSONはいろいろなメソッドのあるオブジェクトだったらいいなと思う人がいるでしょう。
+それはValue objectというパターンを使って出来ます。そしてstore_modelというジェムを勧められますね。これを使ってJSONの値を便利なモデルようなオブジェクトに変えられます。ただ、パフォーマンスにご注意ください。
+-->
 
 ---
 layout: comparison
@@ -1596,7 +1678,11 @@ Because PostgreSQL is much more than datatypes.
 
 And also martian [pg_trunk](https://github.com/nepalez/pg_trunk/) gem to ~~rule them all~~ get `fx`, `scenic` object dependency management and more within a single gem!
 
-<qr-code url="https://github.com/nepalez/pg_trunk/" caption="pg_trunk gem" class="w-32 absolute bottom-10 right-10" />
+<a href="https://github.com/nepalez/pg_trunk" class="block my-4 text-center no-underline border-none hover:border-none">
+<img alt="store_model gem" src="https://opengraph.githubassets.com/fac14e6e69972a6081f741222ea276d67c3df90c2ca2c7b8fedfd007e878e16b/nepalez/pg_trunk" class="w-80 mx-auto" />
+</a>
+
+<qr-code url="https://github.com/nepalez/pg_trunk" caption="pg_trunk gem" class="w-32 absolute bottom-10 right-10" />
 
 ---
 layout: cover
@@ -1649,6 +1735,11 @@ Questions?
 <div class="col-span-3">
 
 Special attention to our awesome blog: [evilmartians.com/chronicles](https://evilmartians.com/chronicles/?utm_source=kaigionrails&utm_medium=slides&utm_campaign=postgresql-as-seen-by-rubyists)!
+
+See this slides at [envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists](https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/)
+
+<qr-code url="https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/" caption="This slides" class="w-32 absolute bottom-10px right-10px" />
+
 
 </div>
 </div>

@@ -73,7 +73,7 @@ const rubyRailsLogo = computed(() => {
   content: '';
 }
 
-.footnote-container > .footnote > p:first-child {
+.comparison-container > .footnote > p:first-child {
   margin-top: 0;
 }
 </style>
