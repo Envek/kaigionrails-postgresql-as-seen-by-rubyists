@@ -14,6 +14,14 @@
   font-stretch: 75% 112.5%; /* Cn: 75%,  Nr: 87.5%,  Std: 100%,  sWd: 112.5% */
 }
 
+.slidev-layout {
+  --slidev-code-font-family: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+code, kbd, samp, pre {
+  font-family: var(--slidev-code-font-family);
+}
+
 .scaled-image, .scaled-image img, .scaled-image svg {
   object-fit: contain;
   max-width: 100%;
@@ -23,4 +31,14 @@
 .slidev-layout a.border-none,
 .slidev-layout a.hover\:border-none:hover {
   border: none;
+}
+
+.dark .slidev-layout {
+  color: rgba(238,238,238,var(--un-text-opacity));
+  background: #33334B;
+  --prism-background: #1b1b1bab;
+}
+
+.shiki-dark {
+  background: #1b1b1bab !important;
 }

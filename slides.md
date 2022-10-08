@@ -46,7 +46,7 @@ Andrey Novikov, Evil Martians<br />
   .rubyists {
     font-stretch: 135%;
     font-weight: bold;
-    color: #CC342D;
+    color: #EB0064;
     text-shadow: maroon 1px 1px;
   }
 </style>
