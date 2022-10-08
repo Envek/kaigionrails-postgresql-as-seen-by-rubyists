@@ -793,7 +793,7 @@ SELECT '\x89504e470d0a1a0a…'::bytea;
 
 ::footnote_ruby::
 
-Memory and network traffic consumption: 🌚
+Memory and network traffic consumption: 📈
 
 ::footnote_pg::
 
@@ -827,7 +827,7 @@ Beware performance implications of TOAST →
   <Tweet id="1526922431780233218" />
 </Transform>
 
-<qr-code url="https://twitter.com/Envek/status/1526922431780233218" class="w-32 absolute bottom-10px right-10px" />
+<qr-code url="https://twitter.com/Envek/status/1526922431780233218" class="w-32 absolute bottom-8px right-12px" />
 
 ---
 layout: comparison
@@ -905,7 +905,7 @@ Time.use_zone("Asia/Tokyo") { Time.current }
 
 `timestamptz`
 
-8 bytes, microsecond precision
+8 bytes, <small>microsecond precision</small>
 
 ::postgresql::
 
@@ -1102,6 +1102,7 @@ layout: comparison
 5..7 or 5...8
 Time.current..1.day.from_now
 
+
 # endless or beginless ranges
 Time.current..
 ..Date.yesterday
@@ -1109,8 +1110,8 @@ nil.. or Range.new(nil, nil)
 
 # Beginning is always included in Ruby :-(
 Test.pluck("tstzrange(now(), now() + '1 hour', '()')").first
-# ArgumentError: The Ruby Range object
-# does not support excluding the beginning of a Range.
+# ArgumentError: The Ruby Range object does not
+# support excluding the beginning of a Range.
 ```
 
 ::pgtype::
@@ -1325,7 +1326,7 @@ Disclaimer: I added it to Rails in [pull request № 16919](https://github.com/r
 
 ::footnote_pg::
 
-PostgreSQL type support is available from Ruby on Rails 6.1+
+Supported out-of-the-box in Ruby on Rails 6.1+
 
 <!--
 Интервал — это на самом деле мощная штука, которая позволяет не только хранить произвольные временные промежутки вида «30 лет и три года» или «без пяти минут одни сутки», но и обеспечивает мощную арифметику с таймстампами. Можно прыгнуть на то же время в следующем месяце или году, неважно, сколько в этом месяце дней и високосный ли год и это всё корректно отработает. Отрадно, что в рельсе уже очень давно есть этот тип данных, вот это вот магическое 1.year или 1.day и все эти операции с временами. В общем, всё неплохо, хотя и стоит помнить, что хотя технически можно получить, например, количество секунд в одном месяце, вы получите разные результаты в рельсе и постгресе и оба этих результата будут бессмысленными без привязки к конкретным таймстампам. Не делайте так, используйте интервалы только для прыжков во времени и больше ни для чего.
@@ -1414,6 +1415,8 @@ end
 
 ## Deserialization
 
+<div class="my-14"></div>
+
 ```ruby
 def deserialize(value)
   return nil if value.nil?
@@ -1423,7 +1426,7 @@ def deserialize(value)
 end
 ```
 
-And `"(USD,4.2)"` in PG transforms to `#<Money fractional:420 currency:USD>` in Ruby ✨
+And `"(USD,4.2)"` becomes `#<Money fractional:420 currency:USD>` in Ruby ✨
 
 <!--
 Достать значение из базы просто: там будет либо NULL, который активрекорд превратит в nil заранее, либо будет строка со скобочками, которая парсится вот этой небольшой, но совершенно нечитаемой регуляркой.
@@ -1456,6 +1459,8 @@ end
 
 ## Deserialization and input casting at once
 
+<div class="my-14"></div>
+
 ```ruby
 def cast_value(value)
   case value
@@ -1480,6 +1485,8 @@ Replaces both `deserialize` and `cast`, also handles `nil`s.
 
 ## Serialization for the database
 
+<div class="my-14"></div>
+
 ```ruby
 def serialize(value)
   return nil if value.nil? # ActiveRecord will handle NULL for us
@@ -1499,6 +1506,8 @@ Reuse available serialization methods for subtypes.
 ---
 
 ## Register datatype in ActiveRecord
+
+<div class="my-14"></div>
 
 ```ruby
 PostgreSQLAdapterWithTrueMoney = Module.new do
@@ -1529,6 +1538,8 @@ ActiveRecord::Type.register(
 
 ## Also add it for migrations…
 
+<div class="my-14"></div>
+
 ```ruby
 module SchemaStatementsWithTrueMoney
   def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **)
@@ -1555,11 +1566,15 @@ end
 
 ## Ready to use!
 
+<div class="my-14"></div>
+
 ```sh
 rails g model Product title price:true_money
 rails db:migrate
 rails console
 ```
+
+<div class="my-14"></div>
 
 ```ruby
 Product.create!(title: "Something", price: Money.from_amount(100000, “USD”))
@@ -1660,6 +1675,8 @@ Everything That Can Be Invented Has Been Invented
 
 ## Gems for datatypes
 
+<div class="my-14"></div>
+
 - [activerecord-postgis-adapter](https://github.com/rgeo/activerecord-postgis-adapter) — all the power of PostGIS extension in Ruby.
 - [activerecord-postgres_enum](https://github.com/bibendi/activerecord-postgres_enum) — support enum in migrations and schema
 - [torque-postgresql](https://github.com/crashtech/torque-postgresql) — standard datatypes not (yet) supported by Rails.
@@ -1736,9 +1753,9 @@ Questions?
 
 Special attention to our awesome blog: [evilmartians.com/chronicles](https://evilmartians.com/chronicles/?utm_source=kaigionrails&utm_medium=slides&utm_campaign=postgresql-as-seen-by-rubyists)!
 
-See this slides at [envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists](https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/)
+<p class="text-sm">See these slides at <a href="https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/">envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists</a></p>
 
-<qr-code url="https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/" caption="This slides" class="w-32 absolute bottom-10px right-10px" />
+<qr-code url="https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/" caption="These slides" class="w-32 absolute bottom-10px right-10px" />
 
 
 </div>
