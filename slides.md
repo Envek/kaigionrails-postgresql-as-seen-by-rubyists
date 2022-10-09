@@ -882,7 +882,7 @@ rubyRails: ruby-rails
 
 `Time`
 
-`AS::TimeWithZone`
+<p class="text-xs"><code>AS::TimeWithZone</code></p>
 
 <small class="text-xs">Two UNIX timestamps inside and tzdata also</small>
 
@@ -919,22 +919,21 @@ SET SESSION timezone TO 'Europe/Lisbon';
 INSERT INTO tests (t1, t2) VALUES (now(), now());
 SET SESSION timezone TO 'Asia/Tokyo';
 SELECT * FROM tests;
-┌────────────────────────────┬───────────────────────────────┐
-│             t1             │              t2               │
-╞════════════════════════════╪═══════════════════════════════╡
-│ 2022-10-02 10:16:53.682997 │ 2022-10-02 19:16:53.682997+09 │
-│ 2022-10-02 19:16:53.684923 │ 2022-10-02 19:16:53.684923+09 │
-│ 2022-10-02 11:16:53.68649  │ 2022-10-02 19:16:53.68649+09  │
-└────────────────────────────┴───────────────────────────────┘
+             t1      |              t2
+---------------------+--------------------------------
+ 2022-10-22 04:42:42 │ 2022-10-02 13:42:42+09 │
+ 2022-10-22 13:42:42 │ 2022-10-02 13:42:42+09 │
+ 2022-10-22 05:42:42 │ 2022-10-02 13:42:42+09 │
+
 ```
 
 ::footnote_ruby::
 
-Links
+Ruby on Rails uses UTC timezone internally.
 
 ::footnote_pg::
 
-Links
+Use `timestamp with time zone` whenever possible!
 
 <!--
 В объектах родного рубишного типа Time хранится кроме даты и времени ещё смещение от UTC и оно всегда равно смещению локальной машины — вашего рабочего компа или сервера.
@@ -1282,11 +1281,7 @@ rubyRails: rails
 
 ::rubytype::
 
-<small>
-
-`ActiveSupport::Duration`
-
-</small>
+<p class="text-xs"><code>ActiveSupport::Duration</code></p>
 
 ::ruby::
 
