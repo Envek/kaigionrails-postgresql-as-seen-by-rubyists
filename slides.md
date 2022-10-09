@@ -1330,6 +1330,79 @@ Supported out-of-the-box in Ruby on Rails 6.1+
 -->
 
 ---
+layout: comparison
+---
+
+## Enums
+
+::rubytype::
+
+`String`
+
+::ruby::
+
+```ruby
+# In migration (Rails 7+):
+create_enum :status, ["draft", "published", "archived", "trashed"]
+change_table :posts do |t|
+  t.enum :status, enum_type: "status", default: "draft", null: false
+end
+
+# In the application code:
+class Article < ApplicationRecord
+  enum :status, { draft: "draft", published: "published", archived: "archived", trashed: "trashed" }
+end
+
+Article.last.status #=> "draft"
+Article.last.draft? #=> true
+Article.last.published!
+# UPDATE articles SET status = 'published' WHERE id = …
+```
+
+::pgtype::
+
+Custom enum types
+
+4 bytes
+
+::postgresql::
+
+```sql
+CREATE TYPE status AS ENUM ('draft', 'published', 'archived', 'trashed');
+ALTER TABLE posts ADD COLUMN "status" status NOT NULL DEFAULT 'draft';
+
+INSERT INTO posts (status) VALUES ('published');
+INSERT INTO posts (status) VALUES ('draft');
+
+SELECT id, status FROM posts;
+
+ id |   status
+----+------------
+  2 | draft
+  1 | published
+```
+
+Values are human-readable in SQL
+
+::footnote_ruby::
+
+On Rails < 7 you can use [activerecord-postgres_enum](https://github.com/bibendi/activerecord-postgres_enum) gem
+
+::footnote_pg::
+
+See [8.7 Enumerated Types](https://www.postgresql.org/docs/14/datatype-enum.html) page in PostgreSQL docs
+
+<!--
+列挙型またはenumとは、保存にはコンパクトで、４バイトだけが必要です。それからSQLにもRubyにも人間が読めるラベルを使って、便利です。
+
+普段、多くのモデルはステータスやタイプやソースなどのようなコラムがあって、この様なケースでは列挙型を使った価値があると思います。Railsはその上に便利な述語メソッドやセッターメソッドのあるインターフェースを追加しています。
+
+以前、enumではなくて、ただintegerをenumとして使う慣行がありましたが、でもその場合データベースの方から見れば、コラムにはただ数字が含まれています。生のSQLクエリを書くとけっこう不便になります。
+
+Rails v7からでネイティブの列挙型のサポートがマイグレーションを含めて、すごく良くなりました。前のRailsバージョンでネイティブのenumを使いたいならactiverecord-postgres_enumというジェムを使ってください。
+-->
+
+---
 layout: cover
 ---
 
@@ -1673,7 +1746,9 @@ Everything That Can Be Invented Has Been Invented
 <div class="my-14"></div>
 
 - [activerecord-postgis-adapter](https://github.com/rgeo/activerecord-postgis-adapter) — all the power of PostGIS extension in Ruby.
-- [activerecord-postgres_enum](https://github.com/bibendi/activerecord-postgres_enum) — support enum in migrations and schema
+
+- [activerecord-postgres_enum](https://github.com/bibendi/activerecord-postgres_enum) — support enum in migrations and schema (before Rails 7)
+
 - [torque-postgresql](https://github.com/crashtech/torque-postgresql) — standard datatypes not (yet) supported by Rails.
 
 ---
