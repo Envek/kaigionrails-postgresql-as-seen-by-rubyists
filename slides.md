@@ -1858,17 +1858,29 @@ layout: cover
 
 Everything That Can Be Invented Has Been Invented
 
+<!--
+もちろん、実際、自分でデータ型を作る機会がないかもしれません。理由は簡単：もうたくさんのデータ型にはジェムがありますから。
+-->
+
 ---
 
 ## Gems for datatypes
 
 <div class="my-14"></div>
 
+- [torque-postgresql](https://github.com/crashtech/torque-postgresql) — standard datatypes not (yet) supported by Rails.
+
 - [activerecord-postgis-adapter](https://github.com/rgeo/activerecord-postgis-adapter) — all the power of PostGIS extension in Ruby.
 
 - [activerecord-postgres_enum](https://github.com/bibendi/activerecord-postgres_enum) — support enum in migrations and schema (before Rails 7)
 
-- [torque-postgresql](https://github.com/crashtech/torque-postgresql) — standard datatypes not (yet) supported by Rails.
+<!--
+torque-postgresqlはRailsにはまだないデータ型のサポートを含めて、それにActiveRecord自身にいろいろな機能も追加します。
+
+次、大人気のPostGISというPostgreSQLの拡張を使うとactiverecord-postgis-adapterというジェムがすべてのデータ型のサポートを含めています。
+
+それから、activerecord-postgres_enumはRails v7の前のアプリに列挙型のマイグレーションサポートを含めています。
+-->
 
 ---
 
@@ -1876,19 +1888,34 @@ Everything That Can Be Invented Has Been Invented
 
 Because PostgreSQL is much more than datatypes.
 
+- [ActiveRecordExtended](https://github.com/GeorgeKaraszi/ActiveRecordExtended) — functions for datatypes and DSL for queries
 - [fx](https://github.com/teoljungberg/fx) — make schema.rb great again with triggers
 - [scenic](https://github.com/scenic-views/scenic) — add support for views
 - [order_query](https://github.com/glebm/order_query) — keyset-pagination for your models
-- [postgresql_cursor](https://github.com/afair/postgresql_cursor) — how to get more data from the database faster
-- [ActiveRecordExtended](https://github.com/GeorgeKaraszi/ActiveRecordExtended) — functions for datatypes and DSL for queries.
+- [postgresql_cursor](https://github.com/afair/postgresql_cursor) — get more data from the database efficiently
 
-And also martian [pg_trunk](https://github.com/nepalez/pg_trunk/) gem to ~~rule them all~~ get `fx`, `scenic` object dependency management and more within a single gem!
+And also martian [pg_trunk](https://github.com/nepalez/pg_trunk/) gem to ~~rule them all~~ get `fx`, `scenic`, object dependency management and more within a single gem!
+
+<div class="absolute left-4 bottom-12 rotate-340 text-lg">
+
+`structure.sql` no more!
+
+Make `schema.rb` great again!
+</div>
 
 <a href="https://github.com/nepalez/pg_trunk" class="block my-4 text-center no-underline border-none hover:border-none">
 <img alt="store_model gem" src="https://opengraph.githubassets.com/fac14e6e69972a6081f741222ea276d67c3df90c2ca2c7b8fedfd007e878e16b/nepalez/pg_trunk" class="w-80 mx-auto" />
 </a>
 
-<qr-code url="https://github.com/nepalez/pg_trunk" caption="pg_trunk gem" class="w-32 absolute bottom-10 right-10" />
+<qr-code url="https://github.com/nepalez/pg_trunk" caption="pg_trunk gem" class="w-32 absolute bottom-15px right-20px" />
+
+<!--
+皆はPostgreSQLが好きの理由はデータ型だけではなくて、いろいろな機能があります。ウィンドー関数、トリガ、ビュー、カーソル、などなど。この機能を使うとたくさんの問題を効率よく解決できます。
+
+ですが、この様な機能を使うために読みやすいschema.rbを読みずらいstructure.sqlに変えるアプリが多いです。でも、fxやscenicのようなジェムはトリガやビューのサポートをschema.rbに追加しますので、読みやすいschema.rbを使いつづけてもいいですよ。
+
+ですから、火星人が作ったpg_trunkというジェムをお勧めしたいと思います。fxとscenicに基づいて、いろいろなPostgreSQLの機能のサポートをschema.rbに追加します。
+-->
 
 ---
 layout: cover
@@ -1899,14 +1926,14 @@ layout: cover
 Questions?
 
 <!--
-Спасибо, что дослушали до конца.
+今日はこれで以上です。最後まで聞いてくださってありがとうございます。
 -->
 
 ---
 
 # Thank you!
 
-<div class="grid grid-cols-[8rem_3fr_2fr] mt-16 gap-4">
+<div class="grid grid-cols-[8rem_2fr_5fr] mt-12 gap-2">
 
 <div class="justify-self-end">
 <img alt="Andrey Novikov" src="https://secure.gravatar.com/avatar/d0e95abdd0aed671ebd0920c16d393d4?s=512" class="w-32 h-32 scaled-image" />
@@ -1916,10 +1943,11 @@ Questions?
 <li><a href="https://github.com/Envek"><logos-github-icon class="dark:invert" /> @Envek</a></li>
 <li><a href="https://twitter.com/Envek"><logos-twitter /> @Envek</a></li>
 <li><a href="https://facebook.com/Envek"><logos-facebook /> @Envek</a></li>
+<li><a href="https://t.me/envek"><logos-telegram /> @Envek</a></li>
 </ul>
 
 <div>
-<qr-code url="https://github.com/Envek" caption="github.com/Envek" class="w-32" />
+<qr-code url="https://github.com/Envek" caption="github.com/Envek" class="w-32 mt-2" />
 </div>
 
 <div class="justify-self-end">
@@ -1935,17 +1963,16 @@ Questions?
 </div>
 
 <div>
-<qr-code url="https://evilmartians.com/" caption="evilmartians.com" class="w-32" />
+<qr-code url="https://evilmartians.com/" caption="evilmartians.com" class="w-32 mt-2" />
 </div>
 
 <div class="col-span-3">
 
-Special attention to our awesome blog: [evilmartians.com/chronicles](https://evilmartians.com/chronicles/?utm_source=kaigionrails&utm_medium=slides&utm_campaign=postgresql-as-seen-by-rubyists)!
+Our awesome blog: [evilmartians.com/chronicles](https://evilmartians.com/chronicles/?utm_source=kaigionrails&utm_medium=slides&utm_campaign=postgresql-as-seen-by-rubyists)!<br/><small class="text-xs">(Special thanks to <a href="https://twitter.com/hachi8833">@hachi8833</a> for translating ≈20 posts to Japanese!)</small>
 
 <p class="text-sm">See these slides at <a href="https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/">envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists</a></p>
 
-<qr-code url="https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/" caption="These slides" class="w-32 absolute bottom-10px right-10px" />
-
+<qr-code url="https://envek.github.io/kaigionrails-postgresql-as-seen-by-rubyists/" caption="These slides" class="w-64 absolute bottom-10px right-20px" />
 
 </div>
 </div>
@@ -1955,3 +1982,13 @@ Special attention to our awesome blog: [evilmartians.com/chronicles](https://evi
   ul { list-style-type: none !important; }
   ul li { margin-left: 0; padding-left: 0; }
 </style>
+
+<!--
+ご質問があったら、私のツイッター等でご遠慮なく聞いてください。
+
+下の右のQRコードを読み取って、このスライドをもう一度読めます。ドキュメントとジェムのリンクがいっぱいありますので、役に立つだと思います。後でぜひ参照してみてください。
+
+さいごに、我々のブログをお勧めしたいと思います。バックエンドやフロントエンドやデザインなどのいろいろな記事があるので、RubyやRailsやPostgreSQLに興味がある方がたくさんの役に立てる記事があって、ぜひ読んでください。それに20ヶ条ぐらいの記事が日本語に翻訳されています、翻訳してくださった@hachi8833さんに感謝いたします。
+
+今日はどうもありがとうございます。
+-->
