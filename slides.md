@@ -912,7 +912,7 @@ layout: comparison
 
 ::ruby::
 
-Internally stores number of days since year 4713 BC.
+Internally stores number of days since year 4713 BC up to infinity.
 
 > The Julian day number is in elapsed days since noon (Greenwich Mean Time) on January 1, 4713 BCE (in the Julian calendar).
 >
@@ -926,7 +926,7 @@ Internally stores number of days since year 4713 BC.
 
 ::postgresql::
 
-Internally stores number of days since year 4713 BC.
+Internally stores number of days since year 4713 BC up to year 5874897 AD.
 
 > In the Julian Date system, each day has a sequential number, starting from JD 0 (which is sometimes called the Julian Date). JD 0 corresponds to 1 January 4713 BC in the Julian calendar.
 
@@ -939,7 +939,11 @@ See the docs for [Date](https://ruby-doc.org/stdlib-3.1.2/libdoc/date/rdoc/Date.
 See [B.7. Julian Dates](https://www.postgresql.org/docs/14/datetime-julian-dates.html) in PostgreSQL docs.
 
 <!--
-Дата с точностью до дня, т.е. без времени.
+PostgreSQLとRubyの日付のデータ型は非常に似ています。面白いのは、どちらもいわゆるユリウス日の数を保存しています。
+
+ユリウス日は日に番号を付ける方法です。 名前が似ていて混乱しますが、ユリウス暦とは関係ありません。
+
+Rubyの整数は実質的に無限なので、日付のデータ型も上限がないんです。
 -->
 
 ---
@@ -1007,6 +1011,10 @@ Ruby on Rails uses UTC timezone internally.
 Use `timestamp with time zone` whenever possible!
 
 <!--
+日付と時刻のデータ型は一番おもしろいです。そして正しく使うのが最も難しいデータ型だと思います。理由はもちろん時間帯、タイムゾーンです。
+
+Rubyの標準ライブラリのTimeというクラスはパソコンの現地時間とUTCだけを使用できます。Time.nowを呼び出すと、TODO
+
 В объектах родного рубишного типа Time хранится кроме даты и времени ещё смещение от UTC и оно всегда равно смещению локальной машины — вашего рабочего компа или сервера.
 А вот ActiveSupport в свой объект добавляет полноценную информацию об использованном часовом поясе и появляется возможность конвертировать таймстампы между часовыми поясами (с учётом летнего/зимнего времени и исторических изменений), переезжать между часовыми поясами ненадолго и т.д. и т.п.
 PostgreSQL же не хранит информацию о часовом поясе или о смещении от UTC. Для типа timestamp он сохраняет локальное текущее время в базу, а для timestamp with time zone а конвертирует при сохранении в UTC, а при выборке — конвертирует в текущий часовой пояс.
@@ -1024,7 +1032,11 @@ layout: center
 <qr-code url="https://youtu.be/-5wpm-gesOY" class="w-32 absolute bottom-10px right-10px" />
 
 <!--
-Рассказ о том, как хранить время и работать с часовыми поясами, заслуживает отдельного доклада, поэтому я просто порекомендую вам посмотреть видео на ютубе. Но если коротко — храните время в UTC, работайте всегда с ним в UTC, а имена, точнее идентификаторы часовых поясов храните рядышком в базе и конвертируйте таймстампы в локальное время только когда нужно. Но это работает только для таймстампов в прошедшем и настоящим. А вот правильная работа с будущим временем… Брр, не будем об этом.
+タイムゾーンの正しい扱い方は非常に巨大な話題ですね。別の30分の発表をできるとおもいますが、今日は時間がないんです。
+
+要するに、時刻をUTCに格納し、UTCで計算し、ユーザーのタイムゾーンに変換して表示してください。ユーザーのタイムゾーンの設定をtzdataのタイムゾーン識別子で保存してください。この「Asia/Tokyo」のやつです。
+
+タイムゾーンについてこの様なYouTubeのビデオをお勧めできます。ぜひご覧ください！
 -->
 
 ---
@@ -1061,11 +1073,11 @@ SELECT 'Ruby' IS DISTINCT FROM NULL; -- true
 ```
 
 <!--
-Nil в Ruby — это отсутствие значение, NULL в SQL — это неопределённое или неизвестное значение. Семантическая разница, однако. В том же js есть отдельно null и отдельно undefined, что очень круто, хотя и в них можно немного заблудиться. Так вот, по моему скромному мнению NULL в SQL семантически соответствует undefined в джаваскрипте.
+RubyのnilとSQLのNULLは違います。
 
-Но если отбросить всякое философствование, то практическая разница проста. Nil в Ruby единственный и неповторимый (и поэтому всегда равен себе), а Null в SQL каждый раз разный и непонятно, равен ли один null другому или нет, поэтому, если вы сравниваете неопределённость с чем бы то ни было, то получаете неопределённость. Всегда стоит про это помнить и использовать специальные возможности SQLя для обработки null’ов, чтобы не получить неожиданные результаты
+nilは「値がない」と言う意味だとおもいます。SQLのNULLは「値は不明」の方だとおもいます。JavaScriptに比べるとRubyのnilはJavaScriptのnullと同じ、SQLのNULLはJavaScriptのundefinedの方みたいかもしれませんが。でも、これはただ私の推測ですね。
 
-Такие дела…
+実際に言えば、Rubyのnilはsingletonなので、nilはいつもnilにイコールです。逆にSQLのNULLはSQLのNULLにぜったいイコールではありません。さらに、何でもNULLと比較すると結果はNULLになります。これも共通の真実ですけど、SQLではNULLを検出と比較するには特別な演算子を使うべきです。気をつけてください。
 -->
 
 ---
@@ -1073,6 +1085,10 @@ layout: center
 ---
 
 # PostgreSQL-specific datatypes
+
+<!--
+PostgreSQLの独自のデータ型に移動しましょう。
+-->
 
 ---
 layout: comparison
