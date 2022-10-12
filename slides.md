@@ -651,11 +651,11 @@ See Ruby docs for [BigDecimal](https://ruby-doc.org/stdlib-3.1.0/libdoc/bigdecim
 **Use `numeric` to store money!**
 
 <!--
-じゃぁ、お金を数えるにはどんなデータ型を使った方がいいか…
+では、お金を数えるにはどんなデータ型を使った方がいいでしょうか？
 
-PostgreSQLではnumericまたはdecimalという任意の精度を持つ数のデータ型です。非常に大きな桁数で数値を格納できます。それに計算誤差できる限り生じないですから、通貨金額やその他正確性が求められる数量を保存してもいいです。でも、Floatよりサイズの方が大きくて、性能の方が遅いですね。
+PostgreSQLは、numericまたはdecimalという任意精度数のデータ型があります。非常に大きい桁数の数値を格納できます。それに、計算誤差はほとんど発生しないので、金額や正確性が必要な数字におすすめです。だが、Floatよりサイズが大きくて、性能も高くないです。
 
-Rubyの方ではこのデータ型はBigDecimalといいます。主な違いは、Rubyでゼロ除算が可能です。結果はもちろん無限大になります。PostgreSQLではエラーが発生します。でも、RubyのBigDecimalは様々な設定があって、その動作はPostgreSQLに合わせて変更できます。
+Rubyは、相当のデータ型はBigDecimalといいます。主な違いは、Rubyではゼロ除算が可能です。結果はもちろん無限大になります。PostgreSQLの方では、エラーが発生します。しかし、BigDecimalは様々な設定があって、PostgreSQLに合わせて動作の変更ができます。
 -->
 
 ---
@@ -715,13 +715,13 @@ Both output and acceptable input format depends on session-level `lc_monetary` s
 Precision is defined by `lc_monetary` at database creation time and can't be changed!
 
 <!--
-でも「PostgreSQLでは特別な通貨型があるでしょ？」と言える方がいるかもしれません。
+「PostgreSQLでは特別な通貨型がありますよ」と言える方がいるかもしれません。
 
-本当ですね、ありますね、お金を保存するためにせっかく作られたデータ型です。でも、問題があります。
+本当ですね、ありますね、金額のためにせっかく作られたデータ型です。
 
-moneyの値は固定小数点数として保存されているため、計算誤差はありません。これはいいことですね。
+moneyは、固定小数点数として保存されるため、計算誤差はありません。これはいいことですね。
 
-でも、入力と出力形式も小数点の位置もlc_monetaryの設定によって違いますから、productionのサーバーと開発者のパソコンの間、相互運用性の問題が発生する可能性があります。ですから、通貨型を使わない方が良いとおもいます。
+でも、別の問題があります。入出力形式も、小数点の位置もlc_monetaryの設定により変わるので、productionと開発環境の間、相互運用性の問題が発生する可能性があります。そのため、通貨型を使わない方が良いとおもいます。
 -->
 
 ---
