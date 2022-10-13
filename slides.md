@@ -4,6 +4,7 @@ highlighter: shiki
 lineNumbers: false
 drawings:
   persist: false
+  syncAll: false
 title: PostgreSQL as seen by Rubyists
 info: |
   ## PostgreSQL as seen by Rubyists
@@ -66,6 +67,7 @@ layout: none
 <a href="https://evilmartians.com/?utm_source=kaigionrails&utm_medium=slides&utm_campaign=postgresql-as-seen-by-rubyists">
 <img alt="Evil Martians" src="/images/01_Evil-Martians_Logo_v2.1_RGB.svg" class="block dark:hidden object-contain text-center m-auto max-h-112" />
 <img alt="Evil Martians" src="/images/02_Evil-Martians_Logo_v2.1_RGB_for-Dark-BG.svg" class="hidden dark:block object-contain text-center m-auto max-h-112" />
+<p class="text-2xl text-center">evilmartians.com</p>
 </a>
 <div class="absolute bottom-32px left-32px rotate-10 text-2xl">邪悪な火星人？</div>
 <div class="absolute bottom-32px right-32px rotate-350 text-2xl">イービルマーシャンズ！</div>
@@ -273,7 +275,7 @@ Are they same?
 
 Stop signs around the world are _mostly_ octagonal.
 
-Japanese signs have “STOP” word in English after 2017, but are still pretty rare to find.
+Japanese signs have “STOP” word in English after 2017, but are still pretty rare.
 
 <!--
 本当に同一の標識はこれです。「Stop」の赤い八角形のやつです。2017年から、日本の標識にも「Stop」が書いてありますが、この様な新しい標識はまだけっこう珍しいですね。
@@ -1202,7 +1204,7 @@ RubyとRailsも複雑点があります。Rubyの標準JSONジェムとRailsのA
 <img alt="store_model gem" src="https://opengraph.githubassets.com/1a8dd076f9dc2fdca766c80094db91f36af4a302e4708ed0f3ad3d6b9535733d/DmitryTsepelev/store_model" class="w-96 mx-auto" />
 </a>
 
-Use [store_model](https://github.com/DmitryTsepelev/store_model) gem to make powerful value objects or submodels from JSON fields.
+Use [store_model](https://github.com/DmitryTsepelev/store_model) gem to make powerful value objects from JSON fields.
 
 **But don't overuse!**
 
@@ -1400,9 +1402,9 @@ SELECT inet_merge(inet '192.168.1.5/24', inet '192.168.2.5/24');
 
 <small>
 
-inet works with both host and network addresses.
+`inet` works with both host and network addresses.
 
-cidr works with network addresses only.
+`cidr` works with network addresses only.
 
 </small>
 
