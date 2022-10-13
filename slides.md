@@ -1013,12 +1013,57 @@ Use `timestamp with time zone` whenever possible!
 <!--
 日付と時刻のデータ型は一番おもしろいです。そして正しく使うのが最も難しいデータ型だと思います。理由はもちろん時間帯、タイムゾーンです。
 
-Rubyの標準ライブラリのTimeというクラスはパソコンの現地時間とUTCだけを使用できます。Time.nowを呼び出すと、TODO
+Rubyの標準ライブラリのTimeというクラスはパソコンの現地時間を使用しています。私のパソコンでTime.nowを呼び出すと、結果は日本時間帯の時刻になります、サーバーで呼び出すと、多分UTCの時刻になるでしょう。Timeのオブジェクトを様々なタイムゾーンの間で変換できません。ちょっと不便です。ですので、ActiveRecordはTimeの代わりに特別なActiveSupport::TimeWithZoneというクラスを使っています。これがパソコンのタイムゾーンではなくて、アプリのタイムゾーン設定を使っています。それにこのデータ型がタイムゾーンの情報を含めて、いろいろ時刻計算とタイムゾーン変換ができます。
 
-В объектах родного рубишного типа Time хранится кроме даты и времени ещё смещение от UTC и оно всегда равно смещению локальной машины — вашего рабочего компа или сервера.
-А вот ActiveSupport в свой объект добавляет полноценную информацию об использованном часовом поясе и появляется возможность конвертировать таймстампы между часовыми поясами (с учётом летнего/зимнего времени и исторических изменений), переезжать между часовыми поясами ненадолго и т.д. и т.п.
-PostgreSQL же не хранит информацию о часовом поясе или о смещении от UTC. Для типа timestamp он сохраняет локальное текущее время в базу, а для timestamp with time zone а конвертирует при сохранении в UTC, а при выборке — конвертирует в текущий часовой пояс.
-Чтобы избежать проблем, ActiveRecord всегда выставляет текущий часовой пояс в UTC и в базу всегда сохраняет время в UTC. И правильно делает!
+データベースの方へ行くと、ActiveRecordは時刻をデータベースに書き込む前UTCに変換して、読み込んでからアプリのタイムゾーンに変換します。データベースではすべての時刻はいつもUTCです。
+
+PostgreSQLは時刻のデータ型が二つあります。タイムゾーンのない日付と時刻型とタイムゾーンのある日付と時刻型。おかしいですが、両方ともタイムゾーンの情報を格納されていません。
+timestamp with time zoneの場合、格納されている値はUTCです。読み込む時にtimezoneというセッション設定のとおりに変換します。ただのtimestamp型は変換なしで、そのままで格納されています。
+
+ActiveRecordはtimezoneのセッション設定をUTCに設定しますので、この二つのデータ型はの違いは無くなくなります。ですが、psqlを使って、データベースに直接接続すると、時刻のデータを台無しにするおそれがありますので、気をつけてください。
+-->
+
+---
+layout: footnote
+---
+
+## How to not mess up with timezones
+
+<div class="my-12"></div>
+
+ 1. Use timezone-aware methods
+
+    Use `Time.current` and `Date.current` instead of `Time.now` and `Date.today`
+
+ 2. Us timestamps to user time zone
+
+    ```ruby
+    Time.use_zone(user.timezone) do
+      # Do SQL queries, render views, …
+    end
+    # or
+    Time.current.in_time_zone(user.timezone)
+    ```
+
+ 3. Don't use dates in SQL, use timestamps
+
+    ```diff
+    - Posts.where(published_at: Date.today...Date.tomorrow)
+    + Posts.where(published_at: Time.current.beginning_of_day..Time.current.end_of_day)
+    ```
+
+::footnote::
+
+More tips here: [thoughtbot.com/blog/its-about-time-zones](https://thoughtbot.com/blog/its-about-time-zones)
+
+<qr-code url="https://thoughtbot.com/blog/its-about-time-zones" class="w-32 absolute bottom-10px right-10px" />
+
+<!--
+時刻とタイムゾーンを扱う時は失敗しやすいですので、この様なルールを守って、気をつけたほうがいいです。
+
+一番大切のは三番目です。日付のデータ型をSQLクエリの条件では絶対使わないでください。データベースのタイムゾーンはUTCなので、真夜中もUTCです、結果はUTCオフセットによってずれます。
+
+注意点がたくさんなのでこの詳しくはこのリンクで見てください。
 -->
 
 ---
@@ -1032,9 +1077,7 @@ layout: center
 <qr-code url="https://youtu.be/-5wpm-gesOY" class="w-32 absolute bottom-10px right-10px" />
 
 <!--
-タイムゾーンの正しい扱い方は非常に巨大な話題ですね。別の30分の発表をできるとおもいますが、今日は時間がないんです。
-
-要するに、時刻をUTCに格納し、UTCで計算し、ユーザーのタイムゾーンに変換して表示してください。ユーザーのタイムゾーンの設定をtzdataのタイムゾーン識別子で保存してください。この「Asia/Tokyo」のやつです。
+つまり、タイムゾーンの正しい扱い方は非常に巨大な話題ですね。別の30分の発表をできるとおもいますが、今日は時間がないんです。
 
 タイムゾーンについてこの様なYouTubeのビデオをお勧めできます。ぜひご覧ください！
 -->
