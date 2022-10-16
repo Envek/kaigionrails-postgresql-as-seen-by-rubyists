@@ -1171,7 +1171,7 @@ layout: center
 # PostgreSQL-specific datatypes
 
 <!--
-これは多くのデータベースにあるデータ型でした。
+今までは、多くのデータベースにあるデータ型でした。
 
 次はPostgreSQLの独自のデータ型に移動しましょう。
 -->
@@ -1232,10 +1232,13 @@ Inside: string <small>(no null-bytes!)</small>, numeric, …
 See [8.14 JSON Types](https://www.postgresql.org/docs/14/datatype-json.html) and [9.16 JSON Functions and Operators](https://www.postgresql.org/docs/14/functions-json.html)
 
 <!--
-JSON… みんなはJSONが好きみたいですよね。便利だし、フレキシブルだし。JSON自身はけっこう簡単なものだと見られますが、でも微妙なことはたくさんありますね。
-初めに、PostgreSQLには二つのJSONデータ型があります。JSONとJSONB。最近、みんなはJSONBを使っています。インデックスを作れますし、パフォーマンすの方がいいし… ですが、厳密です。キーの間のスペースを無視して、ヂュープのキーも捨ててしまいます。逆にJSONはリアル・ワールドにある変なJSONをほとんど全部保存できます。ただし、両方ともゼロバイトを格納出来ません、両方ともにはPostgresの文字列が使用されています。
+JSON… 皆さんはJSONが好きですか？フレキシブルで便利なデータ型ですね。JSON自身はけっこう簡単なものだと見られますが、でも微妙なことはたくさんあります。
 
-RubyとRailsも複雑点があります。Rubyの標準JSONジェムとRailsのActiveSupportはJSONを少し違って生成します。ActiveSupportはオブジェクトのas_jsonというメソッドがあるなら、このメソッドを呼び出して、JSONのデータを組み立てます。標準のジェムはこれを使いません。
+初めに、PostgreSQLには二つのJSONデータ型があります。JSONとJSONB。最近、JSONBの方がよく使われています。インデックスを作れますし、パフォーマンすの方がいいし… ですが、厳密です。トークン間の空白を無視したり、ヂュープのキーも捨てたりします。
+
+逆に、JSONはリアル・ワールドの誤ったフォーマットのデータをほとんど全部保存できます。ただし、両方ともPostgresの文字列であって、ゼロバイトを格納出来ません。
+
+RubyとRailsも複雑点があります。Rubyの標準JSONジェムとRailsのActiveSupportは、データの生成方法が少し異なっています。ActiveSupportの方、オブジェクトはas_jsonというメソッドがある場合、それを呼び出します。標準のジェムはそのメソッドを使いません。
 -->
 
 ---
@@ -1257,7 +1260,7 @@ There is performance penalty for serialization and deserialization.
 <!--
 JSONはいいですけど、Rubyでは普通のHashになるので、使うのはそんなに便利ではないですね。JSONはいろいろなメソッドのあるオブジェクトだったらいいなと思う人がいるでしょう。
 
-それはValue objectというパターンを使って出来ます。そしてstore_modelというジェムを勧められますね。これを使ってJSONの値を便利なモデルようなオブジェクトに変えられます。ただ、パフォーマンスにご注意ください。
+それはValue objectというパターンを使って実現出来ます。そしてstore_modelというジェムもお勧めします。これを使ってJSONの値を、モデルのような便利なオブジェクトに変えられます。ただし、パフォーマンス低下にご注意ください。
 -->
 
 ---
