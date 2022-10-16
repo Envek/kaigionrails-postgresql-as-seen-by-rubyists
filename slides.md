@@ -1159,9 +1159,9 @@ SELECT 'Ruby' IS DISTINCT FROM NULL; -- true
 <!--
 RubyのnilとSQLのNULLも違います。
 
-nilは「値がない」と言う意味だとおもいます。SQLのNULLは「値は不明」の方だとおもいます。JavaScriptに比べるとRubyのnilはJavaScriptのnullと同じ、SQLのNULLはJavaScriptのundefinedの方みたいかもしれませんが。でも、これはただ私の推測ですね。
+nilは「値がない」と言う意味だとおもいます。SQLのNULLは「値は不明」の方だとおもいます。JavaScriptに比べると、RubyのnilはJavaScriptのnullと同じ、SQLのNULLはJavaScriptのundefinedに近いけれども、これはあくまでも個人の意見です。
 
-実際に言えば、Rubyのnilはsingletonなので、nilはいつもnilにイコールです。逆にSQLのNULLはSQLのNULLにぜったいイコールではありません。さらに、何でもNULLと比較すると結果はNULLになります。これも共通の真実ですけど、SQLではNULLを検出と比較するには特別な演算子を使うべきです。気をつけてください。
+実際に、Rubyのnilはsingletonなので、nilはいつもnilにイコールです。逆に、SQLでは、NULLはNULLにイコールではありません。さらに、何かをNULLと比較すると結果はNULLになります。これも共通の真実ですけど、SQLではNULL値の検出や比較のために特別な演算子を使うべきです。
 -->
 
 ---
