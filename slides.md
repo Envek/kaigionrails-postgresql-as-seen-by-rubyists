@@ -980,11 +980,11 @@ See the docs for [Date](https://ruby-doc.org/stdlib-3.1.2/libdoc/date/rdoc/Date.
 See [B.7. Julian Dates](https://www.postgresql.org/docs/14/datetime-julian-dates.html) in PostgreSQL docs.
 
 <!--
-PostgreSQLとRubyの日付のデータ型は非常に似ています。面白いのは、どちらもいわゆるユリウス日の数を保存しています。
+PostgreSQLとRubyの日付のデータ型は非常に似ています。面白いのは、どちらもいわゆるユリウス通日を使用します。
 
-ユリウス日は日に番号を付ける方法です。 名前が似ていて混乱しますが、ユリウス暦とは関係ありません。
+ユリウス通日は、日に番号を付ける方法です。 名前が似ていても、ユリウス暦に関係はありません。
 
-Rubyの整数は実質的に無限なので、日付のデータ型も上限がないんです。
+Rubyの整数は、ほとんど無限なので、日付のデータ型も上限がないんです。
 -->
 
 ---
