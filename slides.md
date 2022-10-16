@@ -901,9 +901,9 @@ See [Binary Data Types](https://www.postgresql.org/docs/14/datatype-binary.html)
 <!--
 普通のテキストを格納する際は、PostgreSQLのvarcharとtextがいいですけど、ゼロバイトや文字コードのミスがある文字列、もしくはバイナリデータを保存するため、PostgreSQLには特別なbyteaというデータ型があります。
 
-Rubyでは、対応のデータ型はASCII-8BITという文字コードの文字列です。このデータ型は違いが一切ありませんので、何でも格納できます。
+Rubyでは、対応のデータ型はASCII-8BITという文字コードの文字列です。RubyとPostgresのデータ型には、違いが一切ありませんので、どちらも何でも格納できます。
 
-ですが、ネットワーク転送量とメモリーのオーバーヘッドに気をつけてください。PostgreSQLは、バイナリデータを16進書式で入出力するので、データ量が倍になります。
+ですが、ネットワーク転送量とメモリーのオーバーヘッドに気をつけてください。PostgreSQLは、バイナリデータを16進書式で入出力するので、データ量が２倍になります。
 
 それに、ActiveRecordは各列に型キャスト前の値もメモリに置いていますので、Rubyプロセスのメモリ消費量は３倍になります。例えば、１ギガバイトのバイナリ値を読み込むと、ネット上で２ギガバイトが転送されて、Rubyのプロセスメモリは３ギガバイトが使用されます。
 -->
@@ -938,7 +938,7 @@ Beware performance implications of TOAST →
 
 それにしても、ラージオブジェクトという特別な機能のおかげで、4テラバイトまでのファイルを、ActiveStorageの添付として格納できます。
 
-一つの注意点があります。ラージオブジェクトや文字列、バイナリ列、JSONなどの大きい値は、全てTOASTという技法を使って保存されていますので、パーフォーマンスに過大な影響を与えます。できるだけデータベースに巨大なオブジェクトを保存しないようにしてください。
+一つの注意点があります。ラージオブジェクトや文字列、バイナリ列、JSONなどの大きい値は、全てTOASTという技法を使って保存されていますので、パーフォーマンスに過大な影響を与えます。できるだけデータベースに巨大なオブジェクトを保存しないようにしてください。詳しくはPostgresのマニュアルとこの私が書いたツイッター・スレッドでおよみください。
 -->
 
 ---
@@ -1058,10 +1058,10 @@ Rubyの標準ライブラリのTimeというクラスはパソコンの現地時
 
 データベースの方へ行くと、ActiveRecordは時刻をデータベースに書き込む前UTCに変換して、読み込んでからアプリのタイムゾーンに変換します。データベースではすべての時刻はいつもUTCです。
 
-PostgreSQLは時刻のデータ型は二つがあります。タイムゾーンがない型とタイムゾーンがある型。おかしいですが、両方ともタイムゾーンの情報を格納されていません。
+PostgreSQLは日付と時刻のデータ型が二つあります。タイムゾーンのない型とタイムゾーンのある型です。おかしいですが、両方ともタイムゾーンの情報を格納されていません。
 timestamp with time zoneの場合、格納されている値はUTCです。読み込む時にtimezoneというセッション設定どおりに変換します。普通のtimestamp型は、データを変換なしでそのままで格納されています。
 
-ActiveRecordはtimezoneのセッション設定をUTCに設定しますので、この二つのデータ型はの違いは無くなくなります。ですが、psqlを使って、データベースに直接接続する際に、時刻のデータはおかしくなるおそれがあって、気をつけたほうがいいです。
+ActiveRecordはtimezoneのセッション設定をUTCに設定しますので、この二つのデータ型はの違いは無くなくなります。ですが、psqlを使って、データベースに直接接続する際に、時刻のデータを台無しにするおそれがありますので、気をつけたほうがいいです。
 -->
 
 ---
@@ -1159,7 +1159,7 @@ SELECT 'Ruby' IS DISTINCT FROM NULL; -- true
 <!--
 RubyのnilとSQLのNULLも違います。
 
-nilは「値がない」と言う意味だとおもいます。SQLのNULLは「値は不明」の方だとおもいます。JavaScriptに比べると、RubyのnilはJavaScriptのnullと同じ、SQLのNULLはJavaScriptのundefinedに近いけれども、これはあくまでも個人の意見です。
+nilは「値がない」と言う意味だとおもいます。SQLのNULLは「値は不明」の方だとおもいます。JavaScriptに比べると、RubyのnilはJavaScriptのnullと同じ、SQLのNULLはJavaScriptのundefinedに近いけれども、でも、これはただ私の推測ですね。
 
 実際に、Rubyのnilはsingletonなので、nilはいつもnilにイコールです。逆に、SQLでは、NULLはNULLにイコールではありません。さらに、何かをNULLと比較すると結果はNULLになります。これも共通の真実ですけど、SQLではNULL値の検出や比較のために特別な演算子を使うべきです。
 -->
@@ -1234,9 +1234,9 @@ See [8.14 JSON Types](https://www.postgresql.org/docs/14/datatype-json.html) and
 <!--
 JSON… 皆さんはJSONが好きですか？フレキシブルで便利なデータ型ですね。JSON自身はけっこう簡単なものだと見られますが、でも微妙なことはたくさんあります。
 
-初めに、PostgreSQLには二つのJSONデータ型があります。JSONとJSONB。最近、JSONBの方がよく使われています。インデックスを作れますし、パフォーマンすの方がいいし… ですが、厳密です。トークン間の空白を無視したり、ヂュープのキーも捨てたりします。
+初めに、PostgreSQLには二つのJSONデータ型があります。JSONとJSONB。最近、JSONBの方がよく使われています。インデックスを作れますし、クエリーのパフォーマンすの方がいいし… ですが、厳密です。トークンの間の空白を無視したり、ヂュープのキーも捨てたりします。また、エスケープされた場合でも、JSONBの中にある文字列にコードゼロを入れることはできません。
 
-逆に、JSONはリアル・ワールドの誤ったフォーマットのデータをほとんど全部保存できます。ただし、両方ともPostgresの文字列であって、ゼロバイトを格納出来ません。
+逆に、JSONはリアル・ワールドの変なJSONをほとんど全部保存できます。でも、JSONの全値はただの文字列です。
 
 RubyとRailsも複雑点があります。Rubyの標準JSONジェムとRailsのActiveSupportは、データの生成方法が少し異なっています。ActiveSupportの方、オブジェクトはas_jsonというメソッドがある場合、それを呼び出します。標準のジェムはそのメソッドを使いません。
 -->
@@ -1332,7 +1332,7 @@ https://www.postgresql.org/docs/14/rangetypes.html
 
 ですが、RubyとPostgreSQLの範囲型では、重大な違いがあります。それは下限値です。Rubyでは、範囲の左の境界は閉じたものなので、最小の値はいつも範囲に含まれます。PostgreSQLは、含むことも含まないこともできます。
 
-離散的な範囲型だったら、例えばinteger又は日付の場合、ActiveRecordは賢いギミックをします。Rubyには下限値に１を足して、閉じた境界に変更します。でも、連続的な範囲型の場合、エラーが発生するので仕方がありませんね。
+離散的な範囲型だったら、例えばinteger又は日付の場合、ActiveRecordは賢いギミックをします。Rubyにはありえない開いた下限値に１を足して、閉じた境界に変更します。でも、連続的な範囲型の場合、エラーが発生するので仕方がありません。
 -->
 
 ---
@@ -1341,9 +1341,11 @@ layout: comparison
 
 ## UUID
 
-<div class="absolute bottom-100px left-200px rotate-355">
+<div class="absolute bottom-75px left-180px rotate-355">
 
-Also take a look at [upcoming UUIDv6, v7, and v8](https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-04)!
+Also take a look at upcoming UUIDv6, **v7**, and v8!
+
+<p class="text-xs"><a href="https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-04">datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-04</a></p>
 </div>
 <qr-code url="https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format-04" class="w-32 absolute bottom-50px right-150px" />
 
@@ -1392,7 +1394,7 @@ See Rails docs for [Digest::UUID](https://api.rubyonrails.org/v6.0.3/classes/Dig
 See docs for [pgcrypto](https://www.postgresql.org/docs/14/pgcrypto.html) and [uuid-ossp](https://www.postgresql.org/docs/14/uuid-ossp.html) extensions.
 
 <!--
-UUID。私はUUIDが大好きです。bigintより倍大きいですが、多目的のデータ型です。UUIDの種類は様々があります。ランダムやハッシュ方式やタイムスタンプ方式の識別子を生成できます。
+UUID。私はUUIDが大好きです。bigintより２倍大きいですが、多目的のデータ型です。UUIDの種類は様々があります。ランダムやハッシュ方式やタイムスタンプ方式の意識別子を生成できます。
 
 RubyとRailsには相当のデータ型がなくて、データは標準形式で文字列として保存されています。PostgreSQLには、16バイトの整数、integerとして格納されていますが、入出力は文字列の形式です。
 
@@ -1514,11 +1516,11 @@ Disclaimer: I added it to Rails in [pull request № 16919](https://github.com/r
 Supported out-of-the-box in Ruby on Rails 6.1+
 
 <!--
-時間間隔またはデュレイションまたはinterval。Railsでの開発者はみんなご存知でしょう、この魔法的な1.yearのやつです。
+時間間隔またはデュレイションまたはinterval。Railsでの開発者はみんなご存知でしょう、この魔法的な1.yearのものです。
 
 時間間隔は実に当てになるものです。時間間隔のおかげで、日付まわりの細かいことに気にしなくて、時刻や日付の算数ができるようになりました。日付に時間間隔を足すと、来月とか来年の同じ日の同じ時間になります。どんな月でも、うるう年でも。本当に素晴らしいです。
 
-時間間隔を秒数に変換できますが、あまり意味がないと思います。それにRailsとPostgreSQLの結果が違いますね。たとえば、Railsの１ヶ月は１年の平気的で30.4日ですが、PostgreSQLの１ヶ月の間隔はいつもちょうど30日です。なので、時刻と日付の算数のためのみに使われてほしいです。
+時間間隔を秒数に変換できますが、あまり意味がないと思います。それにRailsとPostgreSQLの結果が違いますね。たとえば、Railsの１ヶ月は１年の平均的で30.4日ですが、PostgreSQLの１ヶ月の間隔はいつもちょうど30日です。なので、時刻と日付の算数のためのみに使われてほしいです。
 
 二年前にリリースされたRuby on Railsバージョン6.1はPostgreSQLのintervalのサポートが含まれています。少し自慢話ですが、私が作ったものです。どうぞ使ってください！
 -->
