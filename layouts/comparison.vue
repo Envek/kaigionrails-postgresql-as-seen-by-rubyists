@@ -14,10 +14,10 @@ const props = defineProps({
 
 const rubyRailsLogo = computed(() => {
   switch(props.rubyRails) {
-    case 'ruby': return "/images/Ruby_logo.svg";
-    case 'rails': return "/images/Ruby_on_Rails-logo.png";
-    case 'ruby-rails': return "/images/Ruby_and_Rails_logo.png";
-    default: return "/images/Ruby_logo.svg";
+    case 'ruby': return "./images/Ruby_logo.svg";
+    case 'rails': return "./images/Ruby_on_Rails-logo.png";
+    case 'ruby-rails': return "./images/Ruby_and_Rails_logo.png";
+    default: return "./images/Ruby_logo.svg";
   }
 })
 </script>
