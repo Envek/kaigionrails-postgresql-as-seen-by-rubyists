@@ -4,7 +4,7 @@ highlighter: shiki
 lineNumbers: false
 drawings:
   persist: false
-  syncAll: false
+  presenterOnly: true
 title: PostgreSQL as seen by Rubyists
 info: |
   ## PostgreSQL as seen by Rubyists
